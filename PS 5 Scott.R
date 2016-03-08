@@ -24,7 +24,7 @@ model1 <- lm(anes$ft_dpc ~ anes$ft_hclinton)
 ## hypothetical clinton score of 77
 predict(model1, data.frame(ft_hclinton=77))
 
-ft_hclinton
+predict.lm(model1)
 
 ## we would expect a Obama score of 71.7
 
@@ -34,3 +34,26 @@ ft_hclinton
 ## use "training set" to build at least three models 
 ## of Obama's feeling thermometer score
 ## document carefully how you deal with missingness
+
+
+obama_feeling<-anes$ft_dpc
+
+missing_obama_feeling<-which(obama_feeling < 0)
+
+obama_feeling[missing_obama_feeling]<-NA
+
+liberal_rating<-anes$libcpre_self
+
+liberal_rating<-as.character(liberal_rating)
+liberal_rating<-substr(liberal_rating, 0, 1)
+
+missing_liberal_rating<-grep("-",liberal_rating)
+
+liberal_rating[missing_liberal_rating]<-NA
+liberal_rating<-as.numeric(liberal_rating)
+
+liberal_rating_model<-lm(obama_feeling ~ liberal_rating)
+
+predict(liberal_rating_model)
+
+
