@@ -127,14 +127,43 @@ model1_prediction<-predict(model1, anesNew_training[,2:3])
 model2_prediction<-predict(model2, anesNew_training[,4:5])
 model3_prediction<-predict(model3, anesNew_training[,6:7])
 
-str(model1_prediction)
+model_prediction_matrix<-cbind(model1_prediction, model2_prediction, model3_prediction)
 
-model1_prediction<-as.numeric(model1_prediction)
+model_matrix<-apply(model_prediction_matrix, MARGIN = 1, FUN = function(model_prediction_matrix){
+  as.numeric(model_prediction_matrix)}
+  )
+
+model_matrix<-as.matrix(model_matrix)
+
+
+median_fit_stat<-function(observed, predicted){
+  median_observed<-median(observed)
+  median_predicted<-apply(predicted, MARGIN = 1, FUN = function(predicted){
+    median(predicted)
+  }
+  )
+  median_model1<-median_predicted[1]
+  median_model2<-median_predicted[2]
+  median_model3<-median_predicted[3]
+  return(list(median_observed, median_model1, median_model2, median_model3))
+}
 
 rmse<-function(x){
   rmse_stat<-(sum(x^2)/length(x))
   rmse_stat<-sqrt(rmse_stat)
   return(rmse_stat)
+}
+
+rmse_takes_matrix<-function(observed, predicted){
+  rmse_observed<-rmse(observed)
+  rmse_predicted<-apply(predicted, MARGIN = 1, FUN = function(predicted){
+    rmse(predicted)
+  }
+  )
+  rmse_model1<-rmse_predicted[1]
+  rmse_model2<-rmse_predicted[2]
+  rmse_model3<-rmse_predicted[3]
+  return(list(rmse_observed, rmse_model1, rmse_model2, rmse_model3))
 }
 
 rmsle<-function(x){
@@ -144,7 +173,18 @@ rmsle<-function(x){
   return(rmsle_stat)
 }
 
-rmsle(model1_prediction)
+rmsle_takes_matrix<-function(observed, predicted){
+  rmsle_observed<-rmsle(observed)
+  rmsle_predicted<-apply(predicted, MARGIN = 1, FUN = function(predicted){
+    rmsle(predicted)
+  }
+  )
+  rmsle_model1<-rmsle_predicted[1]
+  rmsle_model2<-rmsle_predicted[2]
+  rmsle_model3<-rmsle_predicted[3]
+  return(list(rmsle_observed, rmsle_model1, rmsle_model2, rmsle_model3))
+}
+
 
 
 
@@ -172,4 +212,8 @@ fit_stats<-function(x){
 }
 
 
+
+model_prediction_matrix<-cbind(model1_prediction, model2_prediction, model3_prediction)
+
+str(model2_prediction)
 
