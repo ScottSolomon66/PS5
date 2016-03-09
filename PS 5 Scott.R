@@ -105,12 +105,17 @@ banks_econ_blame<-as.numeric(banks_econ_blame)
 
 anesNew$banks_econ_blame<-banks_econ_blame
 
+obama_zero<-which(anesNew$obama_feeling == 0)
+
+anesNew$obama_feeling[obama_zero]<-NA
+
 anesNew<-as.data.frame(anesNew)
 
 anesNew<-na.omit(anesNew)
 
-anesNew_training<-anesNew[1:1549,]
-anesNew_test<-anesNew[1550:3095,]
+
+anesNew_training<-anesNew[1:1462,]
+anesNew_test<-anesNew[1463:2925,]
 
 
 
@@ -126,33 +131,45 @@ str(model1_prediction)
 
 model1_prediction<-as.numeric(model1_prediction)
 
-median(model1_prediction)
-
 rmse<-function(x){
   rmse_stat<-(sum(x^2)/length(x))
   rmse_stat<-sqrt(rmse_stat)
   return(rmse_stat)
 }
 
-rmsle<-function(x, predicted_values, observed_values){
-  rmsle_stat<-(sum(log(predicted_values+1)-log(observed_values+1)))^2
-  rmsle_stat<-(rmsle_stat)/length(x)
+rmsle<-function(x){
+  rmsle_stat<-(sum(log(x+1)-log(anesNew_training$obama_feeling+1)))^2
+  rmsle_stat<-(rmsle_stat)/length(anesNew$obama_feeling)
+  rmsle_stat<-sqrt(rmsle_stat)
+  return(rmsle_stat)
 }
 
+rmsle(model1_prediction)
+
+
+
+mape<-function(x){
+  mape_stat<-sum(abs(x-(anesNew_training$obama_feeling))/abs((anesNew_training$obama_feeling)))
+  mape_stat<-mape_stat*100
+  mape_stat<-mape_stat/length(x)
+  return(mape_stat)
+}
+
+meape<-function(x){
+  meape_stat<-(abs(x-(anesNew_training$obama_feeling))/abs((anesNew_training$obama_feeling)))
+  meape_stat<-meape_stat*100
+  meape_stat<-median(meape_stat)
+  return(meape_stat)
+}
 
 
 fit_stats<-function(x){
   rmse_stat<-rmse(x)
   median_stat<-median(x)
-  return(list(c(rmse_stat,median_stat)))
+  rmsle_stat<-rmsle(x)
+  mape_stat<-mape_stat(x)
+  return(list(c(rmse_stat, median_stat, rmsle_stat)))
 }
 
 
 
-dim(model1_prediction)
-
-?apply
-
-test_object<-c(1:5)
-
-rmse(test_object)
