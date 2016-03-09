@@ -228,18 +228,28 @@ meape_takes_matrix<-function(observed, predicted){
 
 meape_takes_matrix(anesNew_training$obama_feeling, model_matrix)
 
-fit_stats<-function(observed, predicted){
-  median_stat<-median_takes_vector(observed, predicted)
-  rmse_stat<-rmse_takes_matrix(observed, predicted)
-  rmsle_stat<-rmsle_takes_matrix(observed, predicted)
-  mape_stat<-mape_takes_matrix(observed, predicted)
-  meape_stat<-meape_takes_matrix(observed, predicted)
+fit_stats<-function(observed, predicted, median = T, rmse = T, rmsle = T, mape = T, meape = T){
+  if (median == T) median_stat<-median_takes_vector(observed, predicted)
+  else median_stat<-NULL
+  
+  if (rmse == T) rmse_stat<-rmse_takes_matrix(observed, predicted)
+  else rmse_stat<-NULL
+  
+  if (rmsle == T) rmsle_stat<-rmsle_takes_matrix(observed, predicted)
+  else rmsle_stat<-NULL
+  
+  if (mape == T) mape_stat<-mape_takes_matrix(observed, predicted)
+  else mape_stat<-NULL
+  
+  if (meape == T) meape_stat<-meape_takes_matrix(observed, predicted)
+  else meape_stat<-NULL
+  
   fit_stat_matrix<-cbind(median_stat, rmse_stat, rmsle_stat, mape_stat, meape_stat)
   row_labels<-c("Observed", "Model 1 Prediction", "Model 2 Prediction", "Model 3 Prediction")
   fit_stat_matrix<-as.data.frame(fit_stat_matrix, row.names = row_labels)
   return(fit_stat_matrix)
 }
 
-fit_stats(anesNew_training$obama_feeling, model_matrix)
+fit_stats(anesNew_training$obama_feeling, model_matrix, median = F, mape = F)
 
 
