@@ -136,7 +136,7 @@ model_matrix<-apply(model_prediction_matrix, MARGIN = 1, FUN = function(model_pr
 model_matrix<-as.matrix(model_matrix)
 
 
-median_fit_stat<-function(observed, predicted){
+median_takes_vector<-function(observed, predicted){
   median_observed<-median(observed)
   median_predicted<-apply(predicted, MARGIN = 1, FUN = function(predicted){
     median(predicted)
@@ -193,7 +193,7 @@ mape<-function(x, y){
   return(mape_stat)
 }
 
-mape_takes_vector<-function(observed, predicted){
+mape_takes_matrix<-function(observed, predicted){
   mape_observed<-mape(x = observed, y = observed)
   mape_predicted<-apply(predicted, MARGIN = 1, FUN = function(x = observed, y = predicted){
     mape(observed, predicted)
@@ -226,12 +226,20 @@ meape_takes_matrix<-function(observed, predicted){
   return(list(meape_observed, meape_model1, meape_model2, meape_model3))
 }
 
-
+meape_takes_matrix(anesNew_training$obama_feeling, model_matrix)
 
 fit_stats<-function(observed, predicted){
-  rmse_stats<-rmse_takes_matrix(observed, predicted)
-  return(rmse_stats)
+  median_stat<-median_takes_vector(observed, predicted)
+  rmse_stat<-rmse_takes_matrix(observed, predicted)
+  rmsle_stat<-rmsle_takes_matrix(observed, predicted)
+  mape_stat<-mape_takes_matrix(observed, predicted)
+  meape_stat<-meape_takes_matrix(observed, predicted)
+  fit_stat_matrix<-cbind(median_stat, rmse_stat, rmsle_stat, mape_stat, meape_stat)
+  row_labels<-c("Observed", "Model 1 Prediction", "Model 2 Prediction", "Model 3 Prediction")
+  fit_stat_matrix<-as.data.frame(fit_stat_matrix, row.names = row_labels)
+  return(fit_stat_matrix)
 }
 
+fit_stats(anesNew_training$obama_feeling, model_matrix)
 
 
