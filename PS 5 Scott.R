@@ -166,17 +166,17 @@ rmse_takes_matrix<-function(observed, predicted){
   return(list(rmse_observed, rmse_model1, rmse_model2, rmse_model3))
 }
 
-rmsle<-function(x){
-  rmsle_stat<-(sum(log(x+1)-log(anesNew_training$obama_feeling+1)))^2
-  rmsle_stat<-(rmsle_stat)/length(anesNew$obama_feeling)
+rmsle<-function(x, y){
+  rmsle_stat<-(sum(log(y+1)-log(x+1)))^2
+  rmsle_stat<-(rmsle_stat)/length(x)
   rmsle_stat<-sqrt(rmsle_stat)
   return(rmsle_stat)
 }
 
 rmsle_takes_matrix<-function(observed, predicted){
-  rmsle_observed<-rmsle(observed)
-  rmsle_predicted<-apply(predicted, MARGIN = 1, FUN = function(predicted){
-    rmsle(predicted)
+  rmsle_observed<-rmsle(observed, observed)
+  rmsle_predicted<-apply(predicted, MARGIN = 1, FUN = function(x = observed, y =predicted){
+    rmsle(predicted, observed)
   }
   )
   rmsle_model1<-rmsle_predicted[1]
@@ -186,34 +186,52 @@ rmsle_takes_matrix<-function(observed, predicted){
 }
 
 
-
-
-mape<-function(x){
-  mape_stat<-sum(abs(x-(anesNew_training$obama_feeling))/abs((anesNew_training$obama_feeling)))
+mape<-function(x, y){
+  mape_stat<-sum(abs(y-(x))/abs((x)))
   mape_stat<-mape_stat*100
-  mape_stat<-mape_stat/length(x)
+  mape_stat<-mape_stat/length(y)
   return(mape_stat)
 }
 
-meape<-function(x){
-  meape_stat<-(abs(x-(anesNew_training$obama_feeling))/abs((anesNew_training$obama_feeling)))
+mape_takes_vector<-function(observed, predicted){
+  mape_observed<-mape(x = observed, y = observed)
+  mape_predicted<-apply(predicted, MARGIN = 1, FUN = function(x = observed, y = predicted){
+    mape(observed, predicted)
+  }
+  )
+  mape_model1<-mape_predicted[1]
+  mape_model2<-mape_predicted[2]
+  mape_model3<-mape_predicted[3]
+  return(list(mape_observed, mape_model1, mape_model2, mape_model3))
+}
+
+
+
+meape<-function(x, y){
+  meape_stat<-(abs(y-(x))/abs((x)))
   meape_stat<-meape_stat*100
   meape_stat<-median(meape_stat)
   return(meape_stat)
 }
 
-
-fit_stats<-function(x){
-  rmse_stat<-rmse(x)
-  median_stat<-median(x)
-  rmsle_stat<-rmsle(x)
-  mape_stat<-mape_stat(x)
-  return(list(c(rmse_stat, median_stat, rmsle_stat)))
+meape_takes_matrix<-function(observed, predicted){
+  meape_observed<-meape(observed, observed)
+  meape_predicted<-apply(predicted, MARGIN = 1, FUN = function(x = observed, y = predicted){
+    meape(observed, predicted)
+  }
+  )
+  meape_model1<-meape_predicted[1]
+  meape_model2<-meape_predicted[2]
+  meape_model3<-meape_predicted[3]
+  return(list(meape_observed, meape_model1, meape_model2, meape_model3))
 }
 
 
 
-model_prediction_matrix<-cbind(model1_prediction, model2_prediction, model3_prediction)
+fit_stats<-function(observed, predicted){
+  rmse_stats<-rmse_takes_matrix(observed, predicted)
+  return(rmse_stats)
+}
 
-str(model2_prediction)
+
 
