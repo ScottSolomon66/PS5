@@ -114,13 +114,45 @@ anesNew_test<-anesNew[1550:3095,]
 
 
 
-model1<-lm(obama_feeling ~ campaign_finance + inequality_larger, data=anesNew_training)
-model2<-lm(obama_feeling ~ vp_feelings + hillary_feelings, data=anesNew_training)
-model3<-lm(obama_feeling ~ banks_econ_blame + rep_econ_blame, data=anesNew_training)
+model1<-lm(anesNew_training$obama_feeling ~ anesNew_training$campaign_finance + anesNew_training$inequality_larger, data=anesNew_training)
+model2<-lm(anesNew_training$obama_feeling ~ anesNew_training$vp_feelings + anesNew_training$hillary_feelings, data=anesNew_training)
+model3<-lm(anesNew_training$obama_feeling ~ anesNew_training$banks_econ_blame + anesNew_training$rep_econ_blame, data=anesNew_training)
 
-model1_prediction<-predict(model1, anesNew_training)
-anesNew_training[,2:3]
+model1_prediction<-predict(model1, anesNew_training[,2:3])
+model2_prediction<-predict(model2, anesNew_training[,4:5])
+model3_prediction<-predict(model3, anesNew_training[,6:7])
+
+str(model1_prediction)
+
+model1_prediction<-as.numeric(model1_prediction)
+
+median(model1_prediction)
+
+rmse<-function(x){
+  rmse_stat<-(sum(x^2)/length(x))
+  rmse_stat<-sqrt(rmse_stat)
+  return(rmse_stat)
+}
+
+rmsle<-function(x, predicted_values, observed_values){
+  rmsle_stat<-(sum(log(predicted_values+1)-log(observed_values+1)))^2
+  rmsle_stat<-(rmsle_stat)/length(x)
+}
 
 
 
+fit_stats<-function(x){
+  rmse_stat<-rmse(x)
+  median_stat<-median(x)
+  return(list(c(rmse_stat,median_stat)))
+}
 
+
+
+dim(model1_prediction)
+
+?apply
+
+test_object<-c(1:5)
+
+rmse(test_object)
