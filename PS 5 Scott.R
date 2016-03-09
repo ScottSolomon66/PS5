@@ -87,18 +87,40 @@ hillary_feelings[hillary_feelings_missing]<-NA
 
 anesNew$hillary_feelings<-hillary_feelings
 
-str(anesNew)
+rep_econ_blame<-anes$ecblame_rep
+rep_econ_blame<-as.character(rep_econ_blame)
+rep_econ_blame<-substr(rep_econ_blame, 0, 1)
+rep_econ_blame_missing<-grep("-", rep_econ_blame)
+rep_econ_blame[rep_econ_blame_missing]<-NA
+rep_econ_blame<-as.numeric(rep_econ_blame)
 
+anesNew$rep_econ_blame<-rep_econ_blame
 
+banks_econ_blame<-anes$ecblame_bank
+banks_econ_blame<-as.character(banks_econ_blame)
+banks_econ_blame<-substr(banks_econ_blame, 0, 1)
+banks_econ_blame_missing<-grep("-", banks_econ_blame)
+banks_econ_blame[banks_econ_blame_missing]<-NA
+banks_econ_blame<-as.numeric(banks_econ_blame)
 
-model1<-lm(anesNew$obama_feeling ~ anesNew$campaign_finance + anesNew$inequality_larger)
-model2<-lm(anesNew$obama_feeling ~ anesNew$vp_feelings + anesNew$hillary_feelings)
-
+anesNew$banks_econ_blame<-banks_econ_blame
 
 anesNew<-as.data.frame(anesNew)
 
-liberal_rating_model<-lm(obama_feeling_regression_data ~ liberal_rating_regression_data)
+anesNew<-na.omit(anesNew)
 
-liberal_rating_prediction<-predict(liberal_rating_model)
+anesNew_training<-anesNew[1:1549,]
+anesNew_test<-anesNew[1550:3095,]
 
-?predict
+
+
+model1<-lm(obama_feeling ~ campaign_finance + inequality_larger, data=anesNew_training)
+model2<-lm(obama_feeling ~ vp_feelings + hillary_feelings, data=anesNew_training)
+model3<-lm(obama_feeling ~ banks_econ_blame + rep_econ_blame, data=anesNew_training)
+
+model1_prediction<-predict(model1, anesNew_training)
+anesNew_training[,2:3]
+
+
+
+
