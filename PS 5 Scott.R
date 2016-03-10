@@ -1,7 +1,7 @@
 ## 4625 - R Programming
 ## Problem Set 5
 ## March 10
-## Name
+## Scott Solomon
 
 rm(list=ls())
 set.seed(12435)
@@ -228,7 +228,7 @@ rmse<-function(x){
 }
 
 ### rmse_takes_matrix() ###
-## takes the objected vector and predicted matrix and returns the rmse statistics
+## takes the observed vector and predicted matrix and returns the rmse statistics
 
 rmse_takes_matrix<-function(observed, predicted){
   rmse_observed<-rmse(observed)
@@ -242,7 +242,8 @@ rmse_takes_matrix<-function(observed, predicted){
   return(list(rmse_observed, rmse_model1, rmse_model2, rmse_model3))
 }
 
-
+### rmsle() ###
+## takes two values and finds the rmsle statistic
 
 rmsle<-function(x, y){
   rmsle_stat<-(sum(log(y+1)-log(x+1)))^2
@@ -250,6 +251,9 @@ rmsle<-function(x, y){
   rmsle_stat<-sqrt(rmsle_stat)
   return(rmsle_stat)
 }
+
+### rmsle_take_matrix() ###
+## takes an observed vector and predixced matrix vector and gives the rmsle statistics
 
 rmsle_takes_matrix<-function(observed, predicted){
   rmsle_observed<-rmsle(observed, observed)
@@ -263,6 +267,8 @@ rmsle_takes_matrix<-function(observed, predicted){
   return(list(rmsle_observed, rmsle_model1, rmsle_model2, rmsle_model3))
 }
 
+### mape() ###
+## takes two objects and returns the mape statistic
 
 mape<-function(x, y){
   mape_stat<-sum(abs(y-(x))/abs((x)))
@@ -270,6 +276,9 @@ mape<-function(x, y){
   mape_stat<-mape_stat/length(y)
   return(mape_stat)
 }
+
+### mape_takes_matrix() ###
+## takes an observed vector and predixced matrix vector and gives the mape statistics
 
 mape_takes_matrix<-function(observed, predicted){
   mape_observed<-mape(x = observed, y = observed)
@@ -283,7 +292,8 @@ mape_takes_matrix<-function(observed, predicted){
   return(list(mape_observed, mape_model1, mape_model2, mape_model3))
 }
 
-
+### meape() ###
+## takes two objects and returns the meape statistic
 
 meape<-function(x, y){
   meape_stat<-(abs(y-(x))/abs((x)))
@@ -291,6 +301,9 @@ meape<-function(x, y){
   meape_stat<-median(meape_stat)
   return(meape_stat)
 }
+
+### meape_takes_matrix() ###
+## takes an observed vector and predixced matrix vector and gives the meape statistics
 
 meape_takes_matrix<-function(observed, predicted){
   meape_observed<-meape(observed, observed)
@@ -304,9 +317,13 @@ meape_takes_matrix<-function(observed, predicted){
   return(list(meape_observed, meape_model1, meape_model2, meape_model3))
 }
 
-meape_takes_matrix(anesNew_training$obama_feeling, model_matrix)
+### fit_stats() ###
+## takes ## takes an observed vector and predixced matrix vector
+## returns median, median difference, rmse, rmsle, mape, meape in a matrix with proper labels
+## allows you to choose which statistics you want returned in the matrix (Question 4)
 
 fit_stats<-function(observed, predicted, median = T, median_diff = T, rmse = T, rmsle = T, mape = T, meape = T){
+  ## these functions determine which statistics are returned
   if (median == T) median_stat<-median_takes_matrix(observed, predicted)
   else median_stat<-NULL
   
@@ -325,33 +342,38 @@ fit_stats<-function(observed, predicted, median = T, median_diff = T, rmse = T, 
   if (meape == T) meape_stat<-meape_takes_matrix(observed, predicted)
   else meape_stat<-NULL
   
+  ## creating the matrix to return all the values
   
+  ## combining the statistics
   fit_stat_matrix<-cbind(median_stat, median_diff_stat, rmse_stat, rmsle_stat, mape_stat, meape_stat)
+  ## labeling the rows
   row_labels<-c("Observed", "Model 1 Prediction", "Model 2 Prediction", "Model 3 Prediction")
+  ## turning it into a matrix
   fit_stat_matrix<-as.data.frame(fit_stat_matrix, row.names = row_labels)
   return(fit_stat_matrix)
 }
 
+## running the function to test if for the training subset
 fit_stats(anesNew_training$obama_feeling, model_matrix)
 
+### Question 5 ###
 
+## running the predictions for the test data
 model1_test_prediction<-predict(model1, anesNew_test[,2:3])
 model2_test_prediction<-predict(model2, anesNew_test[,4:5])
 model3_test_prediction<-predict(model3, anesNew_test[,6:7])
 
+## making it into a matrix
 model_test_prediction_matrix<-cbind(model1_test_prediction, model2_test_prediction, model3_test_prediction)
 
+## making all of the values numeric
 model_test_matrix<-apply(model_test_prediction_matrix, MARGIN = 1, FUN = function(model_test_prediction_matrix){
   as.numeric(model_test_prediction_matrix)}
 )
 
+## ensuring its a matrix
 model_test_matrix<-as.matrix(model_test_matrix)
 
+
+## running fit_stats for the test values
 fit_stats(anesNew_test$obama_feeling, model_test_matrix)
-
-
-
-
-
-
-
