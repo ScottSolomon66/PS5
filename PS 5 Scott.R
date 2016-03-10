@@ -11,8 +11,11 @@ library(foreign)
 ## read in data
 anes <- read.dta("/Users/scottsolomon/Documents/Git/Class/Problem Set 5/anes_timeseries_2012_stata12.dta")
 
+
+## making it a data frame
 anes<-as.data.frame(anes)
 
+##setting up the blank data frame to be used with the varibles I want
 anesNew<-NULL
 
 
@@ -37,32 +40,35 @@ predict.lm(model1)
 ## document carefully how you deal with missingness
 
 
+## first I am finding variables that I will use for my model
 
-obama_feeling<-anes$ft_dpc
-missing_obama_feeling<-which(obama_feeling < 0)
-obama_feeling[missing_obama_feeling]<-NA
 
+## obama_feeling (the dependent variable)
+obama_feeling<-anes$ft_dpc # importing the data
+missing_obama_feeling<-which(obama_feeling < 0) # finding the no responses, which are coded as negatives
+obama_feeling[missing_obama_feeling]<-NA # coding the negatives NA
+# placing the data into the blank data.frame
 anesNew$obama_feeling<-obama_feeling
 
-liberal_rating<-anes$libcpre_self
-liberal_rating<-as.character(liberal_rating)
-liberal_rating<-substr(liberal_rating, 0, 1)
-missing_liberal_rating<-grep("-",liberal_rating)
-liberal_rating[missing_liberal_rating]<-NA
-liberal_rating<-as.numeric(liberal_rating)
+###### variables for model 1 ###### 
 
-anesNew$liberal_rating<-liberal_rating
+## campaign_finance (campfin_limcorp)
+## codes whether people want to limit corporate donations or not
 
-campaign_finance<-anes$campfin_limcorp
-campaign_finance<-as.character(campaign_finance)
-campaign_finance<-substr(campaign_finance, 0, 1)
-missing_campaign_finance<-grep("-", campaign_finance)
-campaign_finance[missing_campaign_finance]<-NA
-indifferent<-grep("3", campaign_finance)
-campaign_finance[indifferent]<-NA
-campaign_finance<-as.numeric(campaign_finance)
-
+campaign_finance<-anes$campfin_limcorp # grabbing the data
+campaign_finance<-as.character(campaign_finance) # making it a character 
+campaign_finance<-substr(campaign_finance, 0, 1) # substringing the important characters
+missing_campaign_finance<-grep("-", campaign_finance) # finding the negative (misssing) values
+campaign_finance[missing_campaign_finance]<-NA # coding them NA
+indifferent<-grep("3", campaign_finance) # finding the no responses
+campaign_finance[indifferent]<-NA # coding them as NA
+campaign_finance<-as.numeric(campaign_finance) # making it numeric
+## adding it to the data.frame
 anesNew$campaign_finance<-campaign_finance
+
+## inequality_larger (ineq_incgap)
+## respondent states whether they think inequality is larger or smaller than 20 years ago
+## the process is the same here as it is for campaign_finance
 
 inequality_larger<-anes$ineq_incgap
 inequality_larger<-as.character(inequality_larger)
@@ -75,11 +81,19 @@ inequality_larger<-as.numeric(inequality_larger)
 
 anesNew$inequality_larger<-inequality_larger
 
-vp_feelings<-anes$ftpo_dvpc
+###### variables for model 2 ###### 
+
+## vp_feelings (ftpo_dvpc)
+## gives respondents feelings on the vp candidate from 0 to 100
+## follows the same process as obama_feeling
+
+vp_feelings<-anes$ftpo_dvpc # grabbing the data
 vp_feelings_missing<-which(vp_feelings < 0)
 vp_feelings[vp_feelings_missing]<-NA
 
 anesNew$vp_feelings<-vp_feelings
+
+## hillary_feelings
 
 hillary_feelings<-anes$ft_hclinton
 hillary_feelings_missing<-which(hillary_feelings < 0)
@@ -138,7 +152,6 @@ model_matrix<-apply(model_prediction_matrix, MARGIN = 1, FUN = function(model_pr
 
 model_matrix<-as.matrix(model_matrix)
 
-
 median_takes_vector<-function(observed, predicted){
   median_observed<-median(observed)
   median_predicted<-apply(predicted, MARGIN = 1, FUN = function(predicted){
@@ -150,6 +163,24 @@ median_takes_vector<-function(observed, predicted){
   median_model3<-median_predicted[3]
   return(list(median_observed, median_model1, median_model2, median_model3))
 }
+
+median_difference<-function(x,y){
+  median_difference_stat<-median(x)-median(y)
+  return(median_difference_stat)
+}
+
+median_difference_takes_vector<-function(observed, predicted){
+  median_difference_observed<-median_difference(observed, observed)
+  median_difference_predicted<-apply(predicted, MARGIN = 1, FUN = function(x = observed, y = predicted){
+    median_difference(observed, predicted)
+  }
+  )
+  median_difference_model1<-median_difference_predicted[1]
+  median_difference_model2<-median_difference_predicted[2]
+  median_difference_model3<-median_difference_predicted[3]
+  return(list(median_difference_observed, median_difference_model1, median_difference_model2, median_difference_model3))
+}
+
 
 rmse<-function(x){
   rmse_stat<-(sum(x^2)/length(x))
@@ -231,9 +262,12 @@ meape_takes_matrix<-function(observed, predicted){
 
 meape_takes_matrix(anesNew_training$obama_feeling, model_matrix)
 
-fit_stats<-function(observed, predicted, median = T, rmse = T, rmsle = T, mape = T, meape = T){
+fit_stats<-function(observed, predicted, median = T, median_diff = T, rmse = T, rmsle = T, mape = T, meape = T){
   if (median == T) median_stat<-median_takes_vector(observed, predicted)
   else median_stat<-NULL
+  
+  if (median_diff == T) median_diff_stat<-median_difference_takes_vector(observed, predicted)
+  else median_diff_stat<-NULL
   
   if (rmse == T) rmse_stat<-rmse_takes_matrix(observed, predicted)
   else rmse_stat<-NULL
@@ -247,7 +281,8 @@ fit_stats<-function(observed, predicted, median = T, rmse = T, rmsle = T, mape =
   if (meape == T) meape_stat<-meape_takes_matrix(observed, predicted)
   else meape_stat<-NULL
   
-  fit_stat_matrix<-cbind(median_stat, rmse_stat, rmsle_stat, mape_stat, meape_stat)
+  
+  fit_stat_matrix<-cbind(median_stat, median_diff_stat, rmse_stat, rmsle_stat, mape_stat, meape_stat)
   row_labels<-c("Observed", "Model 1 Prediction", "Model 2 Prediction", "Model 3 Prediction")
   fit_stat_matrix<-as.data.frame(fit_stat_matrix, row.names = row_labels)
   return(fit_stat_matrix)
@@ -269,6 +304,8 @@ model_test_matrix<-apply(model_test_prediction_matrix, MARGIN = 1, FUN = functio
 model_test_matrix<-as.matrix(model_test_matrix)
 
 fit_stats(anesNew_test$obama_feeling, model_test_matrix)
+
+
 
 
 
