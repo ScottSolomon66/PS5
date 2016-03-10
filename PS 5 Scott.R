@@ -113,11 +113,14 @@ anesNew<-as.data.frame(anesNew)
 
 anesNew<-na.omit(anesNew)
 
+str(anesNew)
 
-anesNew_training<-anesNew[1:1462,]
-anesNew_test<-anesNew[1463:2925,]
+anesNew_training<-anesNew[1:1363,]
+anesNew_test<-anesNew[1364:2726,]
 
 
+
+str(anesNew_test)
 
 model1<-lm(anesNew_training$obama_feeling ~ anesNew_training$campaign_finance + anesNew_training$inequality_larger, data=anesNew_training)
 model2<-lm(anesNew_training$obama_feeling ~ anesNew_training$vp_feelings + anesNew_training$hillary_feelings, data=anesNew_training)
@@ -250,6 +253,24 @@ fit_stats<-function(observed, predicted, median = T, rmse = T, rmsle = T, mape =
   return(fit_stat_matrix)
 }
 
-fit_stats(anesNew_training$obama_feeling, model_matrix, median = F, mape = F)
+fit_stats(anesNew_training$obama_feeling, model_matrix)
+
+
+model1_test_prediction<-predict(model1, anesNew_test[,2:3])
+model2_test_prediction<-predict(model2, anesNew_test[,4:5])
+model3_test_prediction<-predict(model3, anesNew_test[,6:7])
+
+model_test_prediction_matrix<-cbind(model1_test_prediction, model2_test_prediction, model3_test_prediction)
+
+model_test_matrix<-apply(model_test_prediction_matrix, MARGIN = 1, FUN = function(model_test_prediction_matrix){
+  as.numeric(model_test_prediction_matrix)}
+)
+
+model_test_matrix<-as.matrix(model_test_matrix)
+
+fit_stats(anesNew_test$obama_feeling, model_test_matrix)
+
+
+
 
 
