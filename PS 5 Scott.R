@@ -94,12 +94,20 @@ vp_feelings[vp_feelings_missing]<-NA
 anesNew$vp_feelings<-vp_feelings
 
 ## hillary_feelings
+## gives respondents feelings on hillary clinton from 0 to 100
+## follows the same process as obama_feeling and vp_feeling
 
 hillary_feelings<-anes$ft_hclinton
 hillary_feelings_missing<-which(hillary_feelings < 0)
 hillary_feelings[hillary_feelings_missing]<-NA
 
 anesNew$hillary_feelings<-hillary_feelings
+
+###### variables for model 3 ###### 
+
+## rep_econ_blame (ecblame_rep)
+## whether or not respondents blame republicans for the economy
+## follows same pattern as campaign_finance and income_inequality
 
 rep_econ_blame<-anes$ecblame_rep
 rep_econ_blame<-as.character(rep_econ_blame)
@@ -110,6 +118,10 @@ rep_econ_blame<-as.numeric(rep_econ_blame)
 
 anesNew$rep_econ_blame<-rep_econ_blame
 
+## banks_econ_blame (ecblame_rep)
+## whether or not respondents blame big banks for the economy
+## follows same pattern as rep_econ_blame
+
 banks_econ_blame<-anes$ecblame_bank
 banks_econ_blame<-as.character(banks_econ_blame)
 banks_econ_blame<-substr(banks_econ_blame, 0, 1)
@@ -119,55 +131,80 @@ banks_econ_blame<-as.numeric(banks_econ_blame)
 
 anesNew$banks_econ_blame<-banks_econ_blame
 
-obama_zero<-which(anesNew$obama_feeling == 0)
 
+## have to remove the obama_feeling where it's zero because of a divide by 0 error later
+obama_zero<-which(anesNew$obama_feeling == 0)
 anesNew$obama_feeling[obama_zero]<-NA
 
+## making it a data frame
 anesNew<-as.data.frame(anesNew)
 
+## ommitting the NA values from the data frame
 anesNew<-na.omit(anesNew)
 
-str(anesNew)
-
+## subsetting the data into the training and test sets
 anesNew_training<-anesNew[1:1363,]
 anesNew_test<-anesNew[1364:2726,]
 
+##### Question 2 ######
 
-
-str(anesNew_test)
-
+## making the linear regression models based off of the variables subsetting above
+## this is performed on the test function
 model1<-lm(anesNew_training$obama_feeling ~ anesNew_training$campaign_finance + anesNew_training$inequality_larger, data=anesNew_training)
 model2<-lm(anesNew_training$obama_feeling ~ anesNew_training$vp_feelings + anesNew_training$hillary_feelings, data=anesNew_training)
 model3<-lm(anesNew_training$obama_feeling ~ anesNew_training$banks_econ_blame + anesNew_training$rep_econ_blame, data=anesNew_training)
 
+## making the predictions based off of the linear regression models above
 model1_prediction<-predict(model1, anesNew_training[,2:3])
 model2_prediction<-predict(model2, anesNew_training[,4:5])
 model3_prediction<-predict(model3, anesNew_training[,6:7])
 
+## making the 3 models into one matrix
 model_prediction_matrix<-cbind(model1_prediction, model2_prediction, model3_prediction)
 
+## making the values in the matrix numeric
 model_matrix<-apply(model_prediction_matrix, MARGIN = 1, FUN = function(model_prediction_matrix){
   as.numeric(model_prediction_matrix)}
   )
 
+#ensuring it is  a matrix
 model_matrix<-as.matrix(model_matrix)
 
-median_takes_vector<-function(observed, predicted){
-  median_observed<-median(observed)
+####### Question 3 ###########
+
+## making the equations for 
+
+### median_takes_vector() ###
+## this function takes the vector of observed value and the matrix of predicted values
+## it returns the median
+
+median_takes_matrix<-function(observed, predicted){
+  median_observed<-median(observed) # finding the median of the observed
   median_predicted<-apply(predicted, MARGIN = 1, FUN = function(predicted){
-    median(predicted)
+    median(predicted) # applying the median to all the rows in the matrix
   }
   )
-  median_model1<-median_predicted[1]
+  # subsetting all of the values
+  median_model1<-median_predicted[1] 
   median_model2<-median_predicted[2]
   median_model3<-median_predicted[3]
-  return(list(median_observed, median_model1, median_model2, median_model3))
+  # returning the values as a list
+  return(list(median_observed, median_model1, median_model2, median_model3)) 
 }
 
+### median_differnce() ###
+## takes two objects and find the mean between the two
+
 median_difference<-function(x,y){
+  # running the median calculuations
   median_difference_stat<-median(x)-median(y)
+  # returning the values
   return(median_difference_stat)
 }
+
+### median_difference_takes_vector() ###
+## takes the observed vector and the predicted matrix
+## returns the difference in median from predicted and observed for each model
 
 median_difference_takes_vector<-function(observed, predicted){
   median_difference_observed<-median_difference(observed, observed)
@@ -181,12 +218,17 @@ median_difference_takes_vector<-function(observed, predicted){
   return(list(median_difference_observed, median_difference_model1, median_difference_model2, median_difference_model3))
 }
 
+### rmse() ###
+## takes a vector and returns the rmse statistic
 
 rmse<-function(x){
   rmse_stat<-(sum(x^2)/length(x))
   rmse_stat<-sqrt(rmse_stat)
   return(rmse_stat)
 }
+
+### rmse_takes_matrix() ###
+## takes the objected vector and predicted matrix and returns the rmse statistics
 
 rmse_takes_matrix<-function(observed, predicted){
   rmse_observed<-rmse(observed)
@@ -199,6 +241,8 @@ rmse_takes_matrix<-function(observed, predicted){
   rmse_model3<-rmse_predicted[3]
   return(list(rmse_observed, rmse_model1, rmse_model2, rmse_model3))
 }
+
+
 
 rmsle<-function(x, y){
   rmsle_stat<-(sum(log(y+1)-log(x+1)))^2
@@ -263,7 +307,7 @@ meape_takes_matrix<-function(observed, predicted){
 meape_takes_matrix(anesNew_training$obama_feeling, model_matrix)
 
 fit_stats<-function(observed, predicted, median = T, median_diff = T, rmse = T, rmsle = T, mape = T, meape = T){
-  if (median == T) median_stat<-median_takes_vector(observed, predicted)
+  if (median == T) median_stat<-median_takes_matrix(observed, predicted)
   else median_stat<-NULL
   
   if (median_diff == T) median_diff_stat<-median_difference_takes_vector(observed, predicted)
